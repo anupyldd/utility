@@ -16,12 +16,6 @@
  * This logger is a modified version of a log system created 
  * by ChiliTomatoNoodle in his Game Engine Infrastructure series
  * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA).
- * Changes include:
- * - use of more modern C++ features (like std::source_location);
- * - additional drivers;
- * - different text color for each severity level in console output;
- * - switch from macros to functions for logging.
- * - small stylistic changes
  */
 
 #pragma once
@@ -31,14 +25,15 @@
 #include <memory>
 #include <vector>
 #include <format>
+#include <filesystem>
+#include <fstream>
 #include <source_location>
 
 namespace util
 {
 namespace log
 {
-
-	enum LEVEL
+	enum class LOG_LEVEL
 	{
 		NONE,
 		FATAL,
@@ -48,15 +43,16 @@ namespace log
 		DEBUG,
 		TRACE
 	};
-	std::string GetLevelName_(LEVEL lvl)
+	std::string GetLOG_LEVELName_(LOG_LEVEL lvl)
 	{
 		switch(lvl)
 		{
-			case LEVEL::TRACE: return "TRACE";
-			case LEVEL::DEBUG: return "DEBUG";
-			case LEVEL::INFO: return "INFO";
-			case LEVEL::WARN: return "WARN";
-			case LEVEL::FATAL: return "FATAL";
+			case LOG_LEVEL::TRACE: return "TRACE";
+			case LOG_LEVEL::DEBUG: return "DEBUG";
+			case LOG_LEVEL::INFO: return "INFO";
+			case LOG_LEVEL::WARN: return "WARN";
+			case LOG_LEVEL::ERROR: return "ERROR";
+			case LOG_LEVEL::FATAL: return "FATAL";
 			default: return "NONE";
 		}
 	}
@@ -70,7 +66,7 @@ namespace log
 		Entry_() = default;
 		Entry_(const std::source_location& src, std::chrono::system_clock::time_point ts)
 			: m_source(src), m_timestamp(ts) { }
-		LEVEL m_level = LEVEL::INFO;
+		LOG_LEVEL m_level = LOG_LEVEL::INFO;
 		std::string m_text;
 		std::source_location m_source;
 		std::chrono::system_clock::time_point m_timestamp;
@@ -88,15 +84,15 @@ namespace log
 	
 	struct SeverityPolicy : public Policy_
 	{
-		SeverityPolicy(LEVEL level);
+		SeverityPolicy(LOG_LEVEL LOG_LEVEL);
 		bool TransformEntry(const Entry_& entry) override;
-		LEVEL m_level;
+		LOG_LEVEL m_level;
 	};
 	
 /*****************************************************/
 
-	SeverityPolicy::SeverityPolicy(LEVEL level)
-		: m_level(level) { }
+	SeverityPolicy::SeverityPolicy(LOG_LEVEL LOG_LEVEL)
+		: m_level(LOG_LEVEL) { }
 		
 	bool SeverityPolicy::TransformEntry(const Entry_& entry)
 	{
@@ -123,7 +119,7 @@ namespace log
 	std::string FormatterText::Format(const Entry_& entry) const
 	{
 		return std::format("[{}] ({}) : \"{}\" in function: {}\n   {}({})\n", 
-			GetLevelName_(entry.m_level), 
+			GetLOG_LEVELName_(entry.m_level), 
 			std::chrono::zoned_time{std::chrono::current_zone(), entry.m_timestamp},
 			entry.m_text,
 			entry.m_source.function_name(),
@@ -160,6 +156,16 @@ namespace log
 		void SetFormatter(std::unique_ptr<Formatter_> fmtr) override;
 		void Submit(const Entry_& entry) override;
 	};
+	
+	struct FileDriver : public DriverFmt_
+	{
+		FileDriver(const std::filesystem::path& path);
+		FileDriver(const std::filesystem::path& path, std::unique_ptr<Formatter_> fmtr);
+		void SetFormatter(std::unique_ptr<Formatter_> fmtr) override;
+		void Submit(const Entry_& entry) override;
+		
+		std::ofstream m_file;
+	};
 
 /*****************************************************/
 // standard console output
@@ -173,7 +179,6 @@ namespace log
 	{
 		m_formatter = std::move(fmtr);
 	}
-	
 	void StdConsoleDebugDriver::Submit(const Entry_& entry)
 	{
 		if(m_formatter)
@@ -181,6 +186,35 @@ namespace log
 			std::cout << m_formatter->Format(entry);
 		}
 	}
+	
+// file output
+	FileDriver::FileDriver(const std::filesystem::path& path)
+		: DriverFmt_(std::make_unique<FormatterText>()) 
+	{
+		std::filesystem::create_directories(path.parent_path());
+		m_file.open(path, m_file.out | m_file.app);
+	}
+		
+	FileDriver::FileDriver(const std::filesystem::path& path, std::unique_ptr<Formatter_> fmtr)
+		: DriverFmt_(std::move(fmtr)) 
+	{
+		std::filesystem::create_directories(path.parent_path());
+		m_file.open(path, m_file.out | m_file.app);
+	}
+
+	void FileDriver::SetFormatter(std::unique_ptr<Formatter_> fmtr)
+	{
+		m_formatter = std::move(fmtr);
+	}
+	
+	void FileDriver::Submit(const Entry_& entry)
+	{
+		if(m_formatter)
+		{
+			m_file << m_formatter->Format(entry);
+		}
+	}
+	
 /*****************************************************/
 //				Channel
 /*****************************************************/
@@ -257,7 +291,7 @@ namespace log
 					= std::source_location::current());
 		
 		EntryBuilder_& Text(const std::string& txt);
-		EntryBuilder_& Level(LEVEL lvl);
+		EntryBuilder_& Level(LOG_LEVEL lvl);
 		EntryBuilder_& Channel(std::unique_ptr<Channel_> chn);
 		
 		EntryBuilder_& Trace(const std::string& txt);
@@ -286,7 +320,7 @@ namespace log
 		m_text = std::move(txt);
 		return *this;
 	}
-	EntryBuilder_& EntryBuilder_::Level(LEVEL lvl)
+	EntryBuilder_& EntryBuilder_::Level(LOG_LEVEL lvl)
 	{
 		m_level = std::move(lvl);
 		return *this;
@@ -299,27 +333,27 @@ namespace log
 	// TODO
 	EntryBuilder_& EntryBuilder_::Trace(const std::string& txt)
 	{
-		Level(LEVEL::TRACE).Text(txt);
+		Level(LOG_LEVEL::TRACE).Text(txt);
 		return *this;
 	}
 	EntryBuilder_& EntryBuilder_::Debug(const std::string& txt)
 	{
-		Level(LEVEL::DEBUG).Text(txt);
+		Level(LOG_LEVEL::DEBUG).Text(txt);
 		return *this;
 	}
 	EntryBuilder_& EntryBuilder_::Info(const std::string& txt)
 	{
-		Level(LEVEL::INFO).Text(txt);
+		Level(LOG_LEVEL::INFO).Text(txt);
 		return *this;
 	}
 	EntryBuilder_& EntryBuilder_::Warn(const std::string& txt)
 	{
-		Level(LEVEL::WARN).Text(txt);
+		Level(LOG_LEVEL::WARN).Text(txt);
 		return *this;
 	}
 	EntryBuilder_& EntryBuilder_::Fatal(const std::string& txt)
 	{
-		Level(LEVEL::FATAL).Text(txt);
+		Level(LOG_LEVEL::FATAL).Text(txt);
 		return *this;
 	}
 	
@@ -329,24 +363,110 @@ namespace log
 	}
 	
 	
-/*****************************************************/
-// 			Temp
-/*****************************************************/
-	
-}
+}	// namespace log
 
-	void Log(const std::string& text)
+/*****************************************************/
+//				Pre-defined functions for logging
+/*****************************************************/
+
+	const std::filesystem::path DEFAULT_FILE_LOG_PATH = "log\\log.txt";
+
+	void ConsoleLog(const std::string& text, log::LOG_LEVEL lvl)
 	{
 		auto chn = std::make_unique<log::ChannelDefault>();
 		chn->RegisterDrivers({std::make_shared<log::StdConsoleDebugDriver>()});
-		chn->RegisterPolicies({std::make_shared<log::SeverityPolicy>(log::LEVEL::NONE)});
+		chn->RegisterPolicies({std::make_shared<log::SeverityPolicy>(lvl)});
 		auto eb = std::make_unique<log::EntryBuilder_>(std::source_location::current());
-		std::cout << "created eb\n";
 		eb->Channel(std::move(chn));
-		std::cout << "added chan\n";
-		eb->Info(text);
-		std::cout << "logged\n";
+		eb->Level(lvl);
+		eb->Text(text);
 	}	
-//#define LOG log::EntryBuilder_{std::source_location::current()}.Channel(std::make_unique<log::ChannelDefault>())
-//#define LOGTO log::EntryBuilder_{std::source_location::current()}
-}
+
+	void ConsoleLogTrace(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::TRACE);
+	}
+	void ConsoleLogDebug(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::DEBUG);
+	}
+	void ConsoleLogInfo(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::INFO);
+	}
+	void ConsoleLogWarn(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::WARN);
+	}
+	void ConsoleLogError(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::ERROR);
+	}
+	void ConsoleLogFatal(const std::string& text)
+	{
+		ConsoleLog(text, log::LOG_LEVEL::FATAL);
+	}
+	
+	void FileLog(const std::string& text, const std::filesystem::path& path, log::LOG_LEVEL lvl)
+	{
+		auto chn = std::make_unique<log::ChannelDefault>();
+		chn->RegisterDrivers({std::make_shared<log::FileDriver>(path)});
+		chn->RegisterPolicies({std::make_shared<log::SeverityPolicy>(lvl)});
+		auto eb = std::make_unique<log::EntryBuilder_>(std::source_location::current());
+		eb->Channel(std::move(chn));
+		eb->Level(lvl);
+		eb->Text(text);
+	}
+	
+	void FileLogTrace(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::TRACE);
+	}
+	void FileLogDebug(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::DEBUG);
+	}
+	void FileLogInfo(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::INFO);
+	}
+	void FileLogWarn(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::WARN);
+	}
+	void FileLogError(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::ERROR);
+	}
+	void FileLogFatal(const std::string& text, const std::filesystem::path& path)
+	{
+		FileLog(text, path, log::LOG_LEVEL::FATAL);
+	}
+	
+	void FileLogTrace(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::TRACE);
+	}
+	void FileLogDebug(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::DEBUG);
+	}
+	void FileLogInfo(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::INFO);
+	}
+	void FileLogWarn(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::WARN);
+	}
+	void FileLogError(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::ERROR);
+	}
+	void FileLogFatal(const std::string& text)
+	{
+		FileLog(text, DEFAULT_FILE_LOG_PATH, log::LOG_LEVEL::FATAL);
+	}
+	
+	
+}	// namespace util 
