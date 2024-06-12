@@ -3,6 +3,10 @@
  * is not supposed to be used directly.
  *
  * For logging use the defined LOG macros class 
+ *
+ * This logger is a modified version of a log system created 
+ * by ChiliTomatoNoodle in his Game Engine Infrastructure series
+ * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA)
  */
 
 #pragma once
@@ -11,6 +15,7 @@
 #include <chrono>
 #include <memory>
 #include <vector>
+#include <format>
 #include <source_location>
 
 namespace util
@@ -47,8 +52,8 @@ namespace log
 	struct Entry_
 	{
 		Entry_() = default;
-		Entry_(const std::source_location& src)
-			: m_source(src) { }
+		Entry_(const std::source_location& src, std::chrono::system_clock::time_point ts)
+			: m_source(src), m_timestamp(ts) { }
 		LEVEL m_level = LEVEL::INFO;
 		std::string m_text;
 		std::source_location m_source;
@@ -56,23 +61,88 @@ namespace log
 	};
 	
 /*****************************************************/
-//				Driver
+//				Formatter
 /*****************************************************/
 
-	class Driver_
+	struct Formatter_ 
 	{
-	public:
+		virtual ~Formatter_() = default;
+		virtual std::string Format(const Entry_& entry) const = 0;	
+	};
+	
+	struct FormatterText : public Formatter_
+	{
+		std::string Format(const Entry_& entry) const override;
+	};
+	
+/*****************************************************/
+
+	std::string FormatterText::Format(const Entry_& entry) const
+	{
+		return std::format("[{}] ({}) : {}\n   in file: {}, line: {}, function: {}\n", 
+			GetLevelName_(entry.m_level), 
+			std::chrono::zoned_time{std::chrono::current_zone(), entry.m_timestamp},
+			entry.m_text,
+			entry.m_source.file_name(),
+			entry.m_source.line(),
+			entry.m_source.function_name()
+			);
+	}
+
+/*****************************************************/
+//				Drivers
+/*****************************************************/
+
+	// does not format entries
+	struct Driver_
+	{
 		virtual void Submit(const Entry_& entry) = 0;
 		virtual ~Driver_() = default;
 	};
+	
+	// formats entries
+	struct DriverFmt_ : public Driver_
+	{
+		DriverFmt_(std::unique_ptr<Formatter_> fmtr) 
+			: m_formatter(std::move(fmtr)) { }
+		virtual void Submit(const Entry_& entry) = 0;
+		virtual void SetFormatter(std::unique_ptr<Formatter_> fmtr) = 0;
+		std::unique_ptr<Formatter_> m_formatter;
+	};
+	
+	class StdConsoleDebugDriver : public DriverFmt_
+	{
+	public:
+		StdConsoleDebugDriver() = default;
+		StdConsoleDebugDriver(std::unique_ptr<Formatter_> fmtr);
+		void SetFormatter(std::unique_ptr<Formatter_> fmtr) override;
+		void Submit(const Entry_& entry) override;
+	};
+
+/*****************************************************/
+
+	StdConsoleDebugDriver::StdConsoleDebugDriver(std::unique_ptr<Formatter_> fmtr)
+		: DriverFmt_(std::move(fmtr)) { }
+		
+	void StdConsoleDebugDriver::SetFormatter(std::unique_ptr<Formatter_> fmtr)
+	{
+		m_formatter = std::move(fmtr);
+	}
+	
+	void StdConsoleDebugDriver::Submit(const Entry_& entry)
+	{
+		if(m_formatter)
+		{
+			std::cout << m_formatter->Format(entry);
+		}
+	}
 
 /*****************************************************/
 //				Channel
 /*****************************************************/
 	
-	class Channel_
+	struct Channel_
 	{
-	public:
 		virtual void Submit(Entry_& entry) = 0;
 		virtual void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs) = 0;
 		virtual ~Channel_() = default;
@@ -139,7 +209,7 @@ namespace log
 /*****************************************************/
 	
 	EntryBuilder_::EntryBuilder_(const std::source_location loc)
-		: Entry_(loc)
+		: Entry_(loc, std::chrono::system_clock::now())
 	{
 		
 	}
