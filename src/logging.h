@@ -79,13 +79,13 @@ namespace log
 
 	std::string FormatterText::Format(const Entry_& entry) const
 	{
-		return std::format("[{}] ({}) : {}\n   in file: {}, line: {}, function: {}\n", 
+		return std::format("[{}] ({}) : \"{}\" in function: {}\n   {}({})\n", 
 			GetLevelName_(entry.m_level), 
 			std::chrono::zoned_time{std::chrono::current_zone(), entry.m_timestamp},
 			entry.m_text,
+			entry.m_source.function_name(),
 			entry.m_source.file_name(),
-			entry.m_source.line(),
-			entry.m_source.function_name()
+			entry.m_source.line()
 			);
 	}
 
@@ -157,6 +157,11 @@ namespace log
 		virtual void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs) override;
 	private:
 		std::vector<std::shared_ptr<Driver_>> m_drivers;
+	};
+	
+	class ChannelDefault : public ChannelBase_
+	{
+		
 	};
 	
 /*****************************************************/
@@ -265,29 +270,9 @@ namespace log
 // 			Temp
 /*****************************************************/
 	
-	
-	class MockChannel_ : public ChannelBase_
-	{
-	public:
-		/*void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs)
-		{
-			
-		}
-		void Submit(Entry_& entry) override
-		{
-			std::cout << "Test from MockChannel\n";
-			//std::cout << "Number of drivers: " << m_drivers.size() << '\n';
-		}*/
-	};
-	
-	class MockDriver_ : public Driver_
-	{
-		virtual void Submit(const Entry_& entry) override
-		{
-			std::cout << "Test from MockDriver\n";
-		}
-	};
 }
 
-#define LOG log::EntryBuilder_{std::source_location::current()}
+	//void Log(const std::string& text, log::LEVEL lvl)
+#define LOG log::EntryBuilder_{std::source_location::current()}.Channel(std::make_unique<log::ChannelDefault>())
+#define LOGTO log::EntryBuilder_{std::source_location::current()}
 }
