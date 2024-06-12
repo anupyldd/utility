@@ -18,9 +18,10 @@
  * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA).
  * Changes include:
  * - use of more modern C++ features (like std::source_location);
- * - use of standard console instead of VS console;
+ * - additional drivers;
  * - different text color for each severity level in console output;
  * - switch from macros to functions for logging.
+ * - small stylistic changes
  */
 
 #pragma once
@@ -37,14 +38,15 @@ namespace util
 namespace log
 {
 
-	enum class LEVEL
+	enum LEVEL
 	{
-		TRACE,
-		DEBUG,
-		INFO,
-		WARN,
+		NONE,
+		FATAL,
 		ERROR,
-		FATAL
+		WARN,
+		INFO,
+		DEBUG,
+		TRACE
 	};
 	std::string GetLevelName_(LEVEL lvl)
 	{
@@ -55,7 +57,7 @@ namespace log
 			case LEVEL::INFO: return "INFO";
 			case LEVEL::WARN: return "WARN";
 			case LEVEL::FATAL: return "FATAL";
-			default: return "UNKNOWN_LEVEL";
+			default: return "NONE";
 		}
 	}
 		
@@ -73,7 +75,34 @@ namespace log
 		std::source_location m_source;
 		std::chrono::system_clock::time_point m_timestamp;
 	};
+
+/*****************************************************/
+//				Policy
+/*****************************************************/
 	
+	struct Policy_
+	{
+		virtual bool TransformEntry(const Entry_& entry) = 0;
+		virtual ~Policy_() = default;
+	};
+	
+	struct SeverityPolicy : public Policy_
+	{
+		SeverityPolicy(LEVEL level);
+		bool TransformEntry(const Entry_& entry) override;
+		LEVEL m_level;
+	};
+	
+/*****************************************************/
+
+	SeverityPolicy::SeverityPolicy(LEVEL level)
+		: m_level(level) { }
+		
+	bool SeverityPolicy::TransformEntry(const Entry_& entry)
+	{
+		return entry.m_level >= m_level;
+	}
+
 /*****************************************************/
 //				Formatter
 /*****************************************************/
@@ -124,16 +153,18 @@ namespace log
 		std::unique_ptr<Formatter_> m_formatter;
 	};
 	
-	class StdConsoleDebugDriver : public DriverFmt_
+	struct StdConsoleDebugDriver : public DriverFmt_
 	{
-	public:
-		StdConsoleDebugDriver() = default;
+		StdConsoleDebugDriver();
 		StdConsoleDebugDriver(std::unique_ptr<Formatter_> fmtr);
 		void SetFormatter(std::unique_ptr<Formatter_> fmtr) override;
 		void Submit(const Entry_& entry) override;
 	};
 
 /*****************************************************/
+// standard console output
+	StdConsoleDebugDriver::StdConsoleDebugDriver()
+		: DriverFmt_(std::make_unique<FormatterText>()) { }
 
 	StdConsoleDebugDriver::StdConsoleDebugDriver(std::unique_ptr<Formatter_> fmtr)
 		: DriverFmt_(std::move(fmtr)) { }
@@ -150,7 +181,6 @@ namespace log
 			std::cout << m_formatter->Format(entry);
 		}
 	}
-
 /*****************************************************/
 //				Channel
 /*****************************************************/
@@ -159,6 +189,7 @@ namespace log
 	{
 		virtual void Submit(Entry_& entry) = 0;
 		virtual void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs) = 0;
+		virtual void RegisterPolicies(std::initializer_list<std::shared_ptr<Policy_>> plcs) = 0;
 		virtual ~Channel_() = default;
 	};
 	
@@ -167,10 +198,12 @@ namespace log
 	public:
 		ChannelBase_() = default;
 		ChannelBase_(std::vector<std::shared_ptr<Driver_>> drvs);
-		virtual void Submit(Entry_& entry) override;
-		virtual void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs) override;
+		void Submit(Entry_& entry) override;
+		void RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs) override;
+		void RegisterPolicies(std::initializer_list<std::shared_ptr<Policy_>> plcs) override;
 	private:
 		std::vector<std::shared_ptr<Driver_>> m_drivers;
+		std::vector<std::shared_ptr<Policy_>> m_policies;
 	};
 	
 	class ChannelDefault : public ChannelBase_
@@ -185,6 +218,17 @@ namespace log
 		
 	void ChannelBase_::Submit(Entry_& entry)
 	{
+		std::cout << "channel::submit\n";
+		std::cout << m_policies.size() << " <pl-dr> " << m_drivers.size() << '\n';
+		for(auto& plc : m_policies)
+		{
+			std::cout << "check policy\n";
+			if(!plc->TransformEntry(entry)) 
+			{
+				std::cout << "TransformEntry check failed\n";
+				return;
+			}
+		}
 		for(const auto& drv : m_drivers)
 		{
 			drv->Submit(entry);
@@ -195,6 +239,11 @@ namespace log
 	{
 		m_drivers.insert(m_drivers.end(), drvs.begin(), drvs.end());
 		std::cout << "Registered " << drvs.size() << " drivers\n";
+	}
+	void ChannelBase_::RegisterPolicies(std::initializer_list<std::shared_ptr<Policy_>> plcs)
+	{
+		m_policies.insert(m_policies.end(), plcs.begin(), plcs.end());
+		std::cout << "Registered " << plcs.size() << " policies\n";
 	}
 	
 /*****************************************************/
@@ -286,7 +335,18 @@ namespace log
 	
 }
 
-	//void Log(const std::string& text, log::LEVEL lvl)
-#define LOG log::EntryBuilder_{std::source_location::current()}.Channel(std::make_unique<log::ChannelDefault>())
-#define LOGTO log::EntryBuilder_{std::source_location::current()}
+	void Log(const std::string& text)
+	{
+		auto chn = std::make_unique<log::ChannelDefault>();
+		chn->RegisterDrivers({std::make_shared<log::StdConsoleDebugDriver>()});
+		chn->RegisterPolicies({std::make_shared<log::SeverityPolicy>(log::LEVEL::NONE)});
+		auto eb = std::make_unique<log::EntryBuilder_>(std::source_location::current());
+		std::cout << "created eb\n";
+		eb->Channel(std::move(chn));
+		std::cout << "added chan\n";
+		eb->Info(text);
+		std::cout << "logged\n";
+	}	
+//#define LOG log::EntryBuilder_{std::source_location::current()}.Channel(std::make_unique<log::ChannelDefault>())
+//#define LOGTO log::EntryBuilder_{std::source_location::current()}
 }
