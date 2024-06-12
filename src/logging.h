@@ -252,32 +252,25 @@ namespace log
 		
 	void ChannelBase_::Submit(Entry_& entry)
 	{
-		std::cout << "channel::submit\n";
-		std::cout << m_policies.size() << " <pl-dr> " << m_drivers.size() << '\n';
 		for(auto& plc : m_policies)
 		{
-			std::cout << "check policy\n";
 			if(!plc->TransformEntry(entry)) 
 			{
-				std::cout << "TransformEntry check failed\n";
 				return;
 			}
 		}
 		for(const auto& drv : m_drivers)
 		{
 			drv->Submit(entry);
-			std::cout << "Submit to driver\n";
 		}
 	}
 	void ChannelBase_::RegisterDrivers(std::initializer_list<std::shared_ptr<Driver_>> drvs)
 	{
 		m_drivers.insert(m_drivers.end(), drvs.begin(), drvs.end());
-		std::cout << "Registered " << drvs.size() << " drivers\n";
 	}
 	void ChannelBase_::RegisterPolicies(std::initializer_list<std::shared_ptr<Policy_>> plcs)
 	{
 		m_policies.insert(m_policies.end(), plcs.begin(), plcs.end());
-		std::cout << "Registered " << plcs.size() << " policies\n";
 	}
 	
 /*****************************************************/
