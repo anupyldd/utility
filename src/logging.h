@@ -41,6 +41,7 @@ namespace log
 	
 	struct Entry_
 	{
+		Entry_() = default;
 		Entry_(const std::source_location& src)
 			: m_source(src) { }
 		LEVEL m_level = LEVEL::INFO;
@@ -52,17 +53,16 @@ namespace log
 	class Channel_
 	{
 	public:
-		virtual void Submit(Entry_& entry);
+		virtual void Submit(Entry_& entry) = 0;
 		virtual ~Channel_() = default;
 	};
 	
 	class MockChannel : public Channel_
 	{
 	public:
-		Entry_ mEntry_;
-		void Submit(Entry_& entry) override final
+		void Submit(Entry_& entry) override
 		{
-			// TODO
+			std::cout << "Test from MockChannel\n";
 		}
 	};
 	
