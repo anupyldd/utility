@@ -2,11 +2,25 @@
  * Anything with a name that has an underscore 
  * is not supposed to be used directly.
  *
- * For logging use the defined LOG macros class 
+ * For logging use the defined logging functions:
+ * TODO : list of functions 
+ *
+ * To create a custom channel inherit the ChannelBase_ class.
+ * To create a custom driver inherit:
+ * - the Driver_ class (if you don't want log entries to be formatted);
+ * - the DriverFmt_ class (if you want log entries to be formatted).
+ * To create a custom formatter, inherit the Formatter_ class.
+ * To see how to make a custom logging function, see the implementation
+ * of already defined functions in the end of the file.
  *
  * This logger is a modified version of a log system created 
  * by ChiliTomatoNoodle in his Game Engine Infrastructure series
- * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA)
+ * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA).
+ * Changes include:
+ * - use of more modern C++ features (like std::source_location);
+ * - use of standard console instead of VS console;
+ * - different text color for each severity level in console output;
+ * - switch from macros to functions for logging.
  */
 
 #pragma once
