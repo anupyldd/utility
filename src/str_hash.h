@@ -1,5 +1,6 @@
 /*
  * This allows to hash a string at compile time.
+ * DJB2 algorithm is used for hashing.
  *
  * Inspired by Jerry Coffin's post
  * (https://stackoverflow.com/a/2112111/22294352)
