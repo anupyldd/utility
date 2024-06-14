@@ -2,6 +2,6 @@ This repo contains some header-only utility libraries implemented mainly for per
 All libraries are independent and can be just copied into existing projects individually.
 C++20 is required.
 
-Currently implemented:\
-	- logging (multiple log levels, output destinations, source info, formatting)\
+Currently implemented:<br />
+	- logging (multiple log levels, output destinations, source info, formatting)<br />
 	- constexpr string hash
