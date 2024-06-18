@@ -13,6 +13,45 @@
 #include <exception>
 #include <format>
 
+
+namespace util
+{
+namespace ae
+{
+/*****************************************************/
+//				Exception
+/*****************************************************/
+	
+	class Exception : public std::exception { };
+	
+	class ExceptionBuffered : public Exception
+	{
+	public:
+		ExceptionBuffered() = default;
+		ExceptionBuffered(const std::string& msg);
+		const char* what() const noexcept override;
+	private:
+		std::string m_msg;
+		mutable std::string m_buffer;
+	};
+	
+/*****************************************************/
+
+	ExceptionBuffered::ExceptionBuffered(const std::string& msg)
+		: m_msg(msg)
+	{
+		
+	}
+	const char* ExceptionBuffered::what() const noexcept
+	{
+		using namespace std::string_literals;
+		m_buffer = "["s + typeid(const_cast<ExceptionBuffered&>(*this)).name() + "]"s;
+		m_buffer += ": " + m_msg;
+		return m_buffer.c_str();
+	}
+}
+}
+
 // concatination, conversion to string or wstring,
 // the ones with underscore are helpers
 #define UT_CAT_(a, b) a##b
@@ -36,28 +75,50 @@ namespace util
 namespace ae
 {
 /*****************************************************/
+//				Custom exception
+/*****************************************************/
+	
+	class AssertFailed : public ExceptionBuffered
+	{
+	public:
+		AssertFailed(const std::string& str)
+			: ExceptionBuffered(str) { }
+	};
+	
+/*****************************************************/
+	
+	enum class EFFECT
+	{
+		LOG,
+		EXIT,
+		EXCEPT
+	};
+	
+/*****************************************************/
 //				Assertion
 /*****************************************************/
 	
 	class Assertion
 	{
 	public:
-		Assertion(const std::string& expr, const char* file, const char* func, int line);
+		Assertion(const std::string& expr, const char* file, const char* func, int line, EFFECT effect = EFFECT::EXIT);
 		~Assertion();
 		Assertion& Msg(const std::string& msg);
 		template<typename T>
 		Assertion& Watch(T&& val, const std::string& name);
+		void Throw();
 	private:
 		const char* m_file = nullptr;
 		const char* m_func = nullptr;
 		int m_line = -1;
+		EFFECT m_effect;
 		std::ostringstream m_stream;
 	};
 	
 /*****************************************************/
 
-	Assertion::Assertion(const std::string& expr, const char* file, const char* func, int line)
-		: m_file(file), m_func(func), m_line(line)
+	Assertion::Assertion(const std::string& expr, const char* file, const char* func, int line, EFFECT effect)
+		: m_file(file), m_func(func), m_line(line), m_effect(effect)
 	{
 		m_stream << "Assertion failed: " << expr << '\n';
 	}
@@ -67,7 +128,7 @@ namespace ae
 		std::cout << std::format("{}    File: {}({}): {}\n",
 								m_stream.str(),
 								m_file, m_line, m_func);
-		exit(1);
+		if(m_effect == EFFECT::EXIT) exit(1);
 	}
 	
 	Assertion& Assertion::Msg(const std::string& msg)
@@ -79,8 +140,13 @@ namespace ae
 	template<typename T>
 	Assertion& Assertion::Watch(T&& val, const std::string& name)
 	{
-		m_stream << "    Name: " << std::forward<T>(val) << '\n';
+		m_stream << "    " << name << ": " << std::forward<T>(val) << '\n';
 		return *this;
+	}
+	
+	void Assertion::Throw()
+	{
+		throw AssertFailed{"NO"};
 	}
 }
 }
@@ -95,3 +161,6 @@ namespace ae
 #endif
 
 #define UT_ASSERT(expr) (!UT_ACTIVE || bool(expr)) ? void(0) : (void)util::ae::Assertion{UT_TOSTR(expr), __FILE__, __FUNCTION__, __LINE__}
+#define UT_CHECK(expr) (!UT_ACTIVE || bool(expr)) ? void(0) : (void)util::ae::Assertion{UT_TOSTR(expr), __FILE__, __FUNCTION__, __LINE__, util::ae::EFFECT::LOG}
+
+

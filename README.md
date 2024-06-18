@@ -5,4 +5,5 @@ C++20 is required.
 Currently implemented:<br />
 	- logging (multiple log levels, output destinations, source info, formatting)<br />
 	- constexpr string hash<br />
-	- templated linked list (access, search, insertion)
+	- templated linked list (access, search, insertion)<br />
+	- custom assertions and exceptions
