@@ -6,6 +6,8 @@
  * (https://www.youtube.com/playlist?list=PLqCJpWy5FoheHDzaP3R1eDFDOOff5TtBA).
 */
 
+#pragma once
+
 #include <string>
 #include <source_location>
 #include <iostream>
