@@ -30,7 +30,7 @@ namespace ae
 		ExceptionBuffered() = default;
 		ExceptionBuffered(const std::string& msg);
 		const char* what() const noexcept override;
-	private:
+	protected:
 		virtual std::string Name() const = 0;
 		std::string m_msg;
 		mutable std::string m_buffer;
