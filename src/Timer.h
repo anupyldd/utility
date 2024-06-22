@@ -138,7 +138,7 @@ namespace time
 	template<typename TF>
 	inline auto Timer<TF>::GetDuration() const
 	{
-		return std::chrono::duration_cast<TF>(m_steps.begin()->m_time - m_steps.end()->m_time);
+		return std::chrono::duration_cast<TF>(m_steps.begin()->m_time - (--m_steps.end())->m_time);
 	}
 
 	template<typename TF>
