@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <iomanip> 
 #include <cstdlib>
+#include <iostream>
 
 namespace util
 {
@@ -137,7 +138,7 @@ namespace time
 	template<typename TF>
 	inline auto Timer<TF>::GetDuration() const
 	{
-		return std::chrono::duration_cast<TF>(m_steps.begin()->m_time - m_steps.end()->m_time);
+		return std::chrono::duration_cast<TF>(m_steps.begin()->m_time - (--m_steps.end())->m_time);
 	}
 
 	template<typename TF>
@@ -155,7 +156,7 @@ namespace time
 	template<typename TF>
 	inline std::string Timer<TF>::OutputLast() const
 	{
-		return std::format("({}) {}: {}", m_name, m_steps.end()->m_name, m_steps.end()->m_time);
+		return std::format("({}) {}: {}", m_name, (--m_steps.end())->m_name, (--m_steps.end())->m_time);
 	}
 
 	template<typename TF>
@@ -181,7 +182,7 @@ namespace time
 		for (const auto& elem : m_steps)
 		{
 			oss << std::setw(15) << elem.m_name << ": " << elem.m_time;
-			if (!prev.empty()) oss << " - " << std::chrono::duration_cast<TF>(GetDiff(elem.m_name, prev)) << " from previous step";
+			if (!prev.empty()) oss << " | " << std::chrono::duration_cast<TF>(GetDiff(elem.m_name, prev)) << " from previous step";
 			oss << '\n';
 			prev = elem.m_name;
 		}
