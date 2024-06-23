@@ -67,7 +67,11 @@ namespace time
 		inline std::string OutputDuration() const;	// from start to finish
 		inline std::string OutputDiff(const std::string& first, const std::string& second) const; // between two time points
 		inline std::string OutputOverview() const; // formats whole list to string for logging
-		
+	
+	public:
+		inline auto GetCurrentTime() const;	
+		inline auto GetTimeSinceEpoch() const; 
+
 	private:
 		ut_StepsCont m_steps;
 		const std::string m_name = "Utility Timer";
@@ -187,6 +191,18 @@ namespace time
 			prev = elem.m_name;
 		}
 		return oss.str();
+	}
+
+	template<typename TF>
+	inline auto Timer<TF>::GetCurrentTime() const
+	{
+		return std::chrono::time_point_cast<TF>(std::chrono::system_clock::now());
+	}
+
+	template<typename TF>
+	inline auto Timer<TF>::GetTimeSinceEpoch() const
+	{
+		return std::chrono::duration_cast<TF>(std::chrono::system_clock::now().time_since_epoch());
 	}
 
 	template<typename TF>
