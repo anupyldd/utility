@@ -45,12 +45,10 @@ namespace time
 			ut_TimePoint m_time;
 		};
 		using ut_StepsCont = std::list<Entry>;
-		using ut_Duration = std::chrono::duration<double, std::nano>;
 
 	public:
 		inline Timer() = default;
 		inline Timer(const std::string& name);
-		inline ~Timer();
 
 		inline Timer<TF>& Start();
 		inline Timer<TF>& Step(const std::string& name);
@@ -89,15 +87,6 @@ namespace time
 	inline Timer<TF>::Timer(const std::string& name)
 		: m_name(name)
 	{
-	}
-
-	template<typename TF>
-	inline Timer<TF>::~Timer()
-	{
-		if (!Contains("TimerFinish"))
-		{
-			m_steps.emplace_back("TimerDestroyedUntimely", std::chrono::system_clock::now());
-		}
 	}
 
 	template<typename TF>
