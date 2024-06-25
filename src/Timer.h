@@ -11,6 +11,8 @@
  * Output functions convert time to string for logging.
  * Get functions return raw values.
  */
+
+#pragma once
  
 #include <chrono>
 #include <map>
