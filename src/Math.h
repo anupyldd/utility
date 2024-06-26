@@ -51,6 +51,8 @@ namespace math
 		double MagSq() const { return x * x + y * y; }
 		double Mag() const { return std::sqrt(MagSq()); }
 
+		double Dot(const Vec2& v) { return x * v.x + y * v.y; }
+
 		void Zero() { x = y = 0; }
 		
 		Vec2<double> Normalize() const { double mag = Mag(); return (mag == 0) ? Vec2<double>(x, y) : *this / mag; }
