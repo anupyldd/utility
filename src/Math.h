@@ -7,6 +7,7 @@
  *
  * Templated structures:
  * - 2D, 3D, 4D vectors
+ * - line segments
  *
  * There are some aliases like position, point, color,
  * etc. already defined in the format <name><dimensions><data type>
@@ -61,7 +62,10 @@ namespace math
 	template<class T> double Avg(T a, T b);
 	template<class T> double Avg(T a, T b, T c);
 	template<class T> double Avg(std::initializer_list<T> ls);
-	template<class T> double Avg(const Vec2<T>& v1, const Vec2<T>& v2);
+	template<class T> Vec2<double> Avg(const Vec2<T>& v1, const Vec2<T>& v2);
+
+// distance sq
+	template<class T> double DistanceSq(const Vec2<T>& p1, const Vec2<T>& p2);
 
 // distance
 	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
@@ -189,15 +193,21 @@ namespace math
 
 		template<class C>
 		friend Vec2<C> operator+(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x + rhs, lhs.y + rhs); }
-		
 		template<class C>
 		friend Vec2<C> operator-(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x - rhs, lhs.y - rhs); }
-		
 		template<class C>
 		friend Vec2<C> operator*(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x * rhs, lhs.y * rhs); }
-
 		template<class C>
 		friend Vec2<C> operator/(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x / rhs, lhs.y / rhs); }
+
+		template<class C>
+		friend Vec2<C> operator+(const Vec2<T>& lhs, const Vec2<C>& rhs) { return Vec2<C>(lhs.x + rhs.x, lhs.y + rhs.y); }
+		template<class C>
+		friend Vec2<C> operator-(const Vec2<T>& lhs, const Vec2<C>& rhs) { return Vec2<C>(lhs.x - rhs.x, lhs.y - rhs.y); }
+		template<class C>
+		friend Vec2<C> operator*(const Vec2<T>& lhs, const Vec2<C>& rhs) { return Vec2<C>(lhs.x * rhs.x, lhs.y * rhs.y); }
+		template<class C>
+		friend Vec2<C> operator/(const Vec2<T>& lhs, const Vec2<C>& rhs) { return Vec2<C>(lhs.x / rhs.x, lhs.y / rhs.y); }
 
 		friend std::ostream& operator<<(std::ostream& os, const Vec2<T>& v)
 		{
@@ -257,15 +267,21 @@ namespace math
 
 		template<class C>
 		friend Vec3<C> operator+(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs); }
-
 		template<class C>
 		friend Vec3<C> operator-(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs); }
-
 		template<class C>
 		friend Vec3<C> operator*(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs); }
-
 		template<class C>
 		friend Vec3<C> operator/(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs); }
+
+		template<class C>
+		friend Vec3<C> operator+(const Vec3<T>& lhs, const Vec3<C>& rhs) { return Vec3<C>(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z); }
+		template<class C>
+		friend Vec3<C> operator-(const Vec3<T>& lhs, const Vec3<C>& rhs) { return Vec3<C>(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z); }
+		template<class C>
+		friend Vec3<C> operator*(const Vec3<T>& lhs, const Vec3<C>& rhs) { return Vec3<C>(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z); }
+		template<class C>
+		friend Vec3<C> operator/(const Vec3<T>& lhs, const Vec3<C>& rhs) { return Vec3<C>(lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z); }
 
 		friend std::ostream& operator<<(std::ostream& os, const Vec3<T>& v)
 		{
@@ -325,15 +341,21 @@ namespace math
 
 		template<class C>
 		friend Vec4<C> operator+(const Vec4<T>& lhs, const C& rhs) { return Vec4<C>(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs, lhs.w + rhs); }
-
 		template<class C>
 		friend Vec4<C> operator-(const Vec4<T>& lhs, const C& rhs) { return Vec4<C>(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs, lhs.w - rhs); }
-
 		template<class C>
 		friend Vec4<C> operator*(const Vec4<T>& lhs, const C& rhs) { return Vec4<C>(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs); }
-
 		template<class C>
 		friend Vec4<C> operator/(const Vec4<T>& lhs, const C& rhs) { return Vec4<C>(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs); }
+
+		template<class C>
+		friend Vec4<C> operator+(const Vec4<T>& lhs, const Vec4<C>& rhs) { return Vec4<C>(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
+		template<class C>
+		friend Vec4<C> operator-(const Vec4<T>& lhs, const Vec4<C>& rhs) { return Vec4<C>(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
+		template<class C>
+		friend Vec4<C> operator*(const Vec4<T>& lhs, const Vec4<C>& rhs) { return Vec4<C>(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
+		template<class C>
+		friend Vec4<C> operator/(const Vec4<T>& lhs, const Vec4<C>& rhs) { return Vec4<C>(lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z, lhs.w / rhs.w); }
 
 		friend std::ostream& operator<<(std::ostream& os, const Vec4<T>& v)
 		{
@@ -356,7 +378,10 @@ namespace math
 		Segment2(const Segment2& src) : a(src.a), b(src.b) {}
 
 		double Len() const { return Distance(a, b); }
-		//double LenSq() const { return DistanceSq(a, b); }
+		double LenSq() const { return DistanceSq(a, b); }
+		double CenterA() const { return Avg(a.x, a.y)); }
+		double CenterB() const { return Avg(b.x, b.y)); }
+		Vec2D Center() const { return Avg(a, b); }
 
 	public:
 		template<class NT>
@@ -399,13 +424,20 @@ namespace math
 	double Avg(std::initializer_list<T> ls) { return (std::accumulate(ls.begin(), ls.end(), 0)) / ls.size(); }
 
 	template<class T>
-	double Avg(const Vec2<T>& v1, const Vec2<T>& v2) { return (v1 + v2) * 0.5; }
+	Vec2D Avg(const Vec2<T>& v1, const Vec2<T>& v2) { return (v1 + v2) * 0.5; }
+
+// distance sq
+	template<class T>
+	double DistanceSq(const Vec2<T>& p1, const Vec2<T>& p2)
+	{
+		return Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y);
+	}
 
 // distance
 	template<class T>
 	double Distance(const Vec2<T>& p1, const Vec2<T>& p2)	
 	{
-		return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+		return std::sqrt(DistanceSq(p1, p2));
 	}
 	/*
 	template<class T>
@@ -416,6 +448,5 @@ namespace math
 		//const T b = std::sqrt(Sqr(l2.y - l1.y) + Sqr(l2.x - l1.x));
 		//return a / b;
 	}*/
-	
 }
 }
