@@ -23,6 +23,8 @@
 #include <string>
 #include <format>
 #include <numbers>
+#include <initializer_list>
+#include <numeric>
 
 /*****************************************************/
 // List of available structures and functions 
@@ -52,8 +54,16 @@ namespace math
 
 // Functions ----------------------------------------
 
+// square
 	template<class T> T Sqr(T a);
 
+// average
+	template<class T> double Avg(T a, T b);
+	template<class T> double Avg(T a, T b, T c);
+	template<class T> double Avg(std::initializer_list<T> ls);
+	template<class T> double Avg(const Vec2<T>& v1, const Vec2<T>& v2);
+
+// distance
 	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
 	//template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p);	// between point p and line going through l1 and l2
 
@@ -373,10 +383,25 @@ namespace math
 	};
 
 // Functions ----------------------------------------------
-	
+
+// square
 	template<class T>
 	T Sqr(T a) { return a * a; }
 
+// average
+	template<class T>
+	double Avg(T a, T b) { return (a + b) / 2; }
+
+	template<class T>
+	double Avg(T a, T b, T c) { return (a + b + c) / 3; }
+
+	template<class T>
+	double Avg(std::initializer_list<T> ls) { return (std::accumulate(ls.begin(), ls.end(), 0)) / ls.size(); }
+
+	template<class T>
+	double Avg(const Vec2<T>& v1, const Vec2<T>& v2) { return (v1 + v2) * 0.5; }
+
+// distance
 	template<class T>
 	double Distance(const Vec2<T>& p1, const Vec2<T>& p2)	
 	{
