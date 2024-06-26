@@ -64,6 +64,9 @@ namespace math
 	template<class T> double Avg(std::initializer_list<T> ls);
 	template<class T> Vec2<double> Avg(const Vec2<T>& v1, const Vec2<T>& v2);
 
+// distance sq
+	template<class T> double DistanceSq(const Vec2<T>& p1, const Vec2<T>& p2);
+
 // distance
 	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
 	//template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p);	// between point p and line going through l1 and l2
@@ -375,8 +378,10 @@ namespace math
 		Segment2(const Segment2& src) : a(src.a), b(src.b) {}
 
 		double Len() const { return Distance(a, b); }
-		//double LenSq() const { return DistanceSq(a, b); }
-
+		double LenSq() const { return DistanceSq(a, b); }
+		double CenterA() const { return Avg(a.x, a.y)); }
+		double CenterB() const { return Avg(b.x, b.y)); }
+		Vec2D Center() const { return Avg(a, b); }
 
 	public:
 		template<class NT>
@@ -421,11 +426,18 @@ namespace math
 	template<class T>
 	Vec2D Avg(const Vec2<T>& v1, const Vec2<T>& v2) { return (v1 + v2) * 0.5; }
 
+// distance sq
+	template<class T>
+	double DistanceSq(const Vec2<T>& p1, const Vec2<T>& p2)
+	{
+		return Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y);
+	}
+
 // distance
 	template<class T>
 	double Distance(const Vec2<T>& p1, const Vec2<T>& p2)	
 	{
-		return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+		return std::sqrt(DistanceSq(p1, p2));
 	}
 	/*
 	template<class T>
@@ -436,6 +448,5 @@ namespace math
 		//const T b = std::sqrt(Sqr(l2.y - l1.y) + Sqr(l2.x - l1.x));
 		//return a / b;
 	}*/
-	
 }
 }
