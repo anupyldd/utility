@@ -23,11 +23,24 @@
 #include <cmath>
 #include <string>
 #include <format>
+#include <numbers>
 
 namespace util
 {
 namespace math
 {
+/*****************************************************/
+//				Constants
+/*****************************************************/
+
+	using PI = std::numbers::pi;
+	using PI2 = PI * 2;
+
+	using PI_2 = PI / 2;
+	using PI_3 = PI / 3;
+	using PI_4 = PI / 4;
+	using PI_6 = PI / 6;
+
 /*****************************************************/
 //				Structures
 /*****************************************************/
