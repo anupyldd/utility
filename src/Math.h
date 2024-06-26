@@ -6,10 +6,9 @@
  * (excluding those which make no sense)
  *
  * Templated structures:
- * - Vec2 
- * - Vec3
- * 
- * There are also some aliases like position, point, color,
+ * - 2D, 3D, 4D vectors
+ *
+ * There are some aliases like position, point, color,
  * etc. already defined in the format <name><dimensions><data type>
  */
 
@@ -25,21 +24,50 @@
 #include <format>
 #include <numbers>
 
+/*****************************************************/
+// List of available structures and functions 
+/*****************************************************/
+
 namespace util
 {
 namespace math
 {
-/*****************************************************/
-//				Constants
-/*****************************************************/
+// Constants ----------------------------------------
 
 	constexpr double PI = 3.1415926535897932;
-	constexpr double PI2 = PI * 2;
+	constexpr double PI2 = PI * 2;	// PI * 2
 
-	constexpr double PI_2 = PI / 2;
-	constexpr double PI_3 = PI / 3;
-	constexpr double PI_4 = PI / 4;
-	constexpr double PI_6 = PI / 6;
+	constexpr double PI_2 = PI / 2; // PI / 2
+	constexpr double PI_3 = PI / 3; // PI / 3
+	constexpr double PI_4 = PI / 4; // PI / 4
+	constexpr double PI_6 = PI / 6; // PI / 6
+
+// Structures ---------------------------------------
+
+	template<class T> struct Vec2;
+	template<class T> struct Vec3;
+	template<class T> struct Vec4;
+
+	template<class T> struct Line2;
+
+// Functions ----------------------------------------
+
+	template<class T> T Sqr(T a);
+
+	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
+	template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p)	// between point p and line going through l1 and l2
+}
+}
+
+/*****************************************************/
+// Implementation 
+/*****************************************************/
+
+namespace util
+{
+namespace math
+{
+
 
 /*****************************************************/
 //				Structures
@@ -252,6 +280,22 @@ namespace math
 	};
 
 /*****************************************************/
+
+	template<class T>
+	struct Line2
+	{
+		Vec2<T> a, b;
+
+	public:
+		Line2() = default;
+		Line2(const Vec2<T>& a, const Vec2<T>& b) : a(a), b(b) {}
+		Line2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by) {}
+		Line2(const Line2& src) : a(src.a), b(src.b) {}
+
+		double LenSq() const {return }
+	};
+
+/*****************************************************/
 //				Aliases
 /*****************************************************/
 
@@ -303,5 +347,24 @@ namespace math
 /*****************************************************/
 //				Functions
 /*****************************************************/
+	
+	template<class T>
+	T Sqr(T a) { return a * a; }
+
+	template<class T>
+	double Distance(const Vec2<T>& p1, const Vec2<T>& p2)	
+	{
+		return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+	}
+	/*
+	template<class T>
+	double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p)	// between point p and line going through l1 and l2
+	{
+		
+		//const T a = std::abs((l2.y - l1.y) * p.x - (l2.x - l1.x) * p.y + l2.x + l1.y - l2.y + l1.x);
+		//const T b = std::sqrt(Sqr(l2.y - l1.y) + Sqr(l2.x - l1.x));
+		//return a / b;
+	}*/
+	
 }
 }
