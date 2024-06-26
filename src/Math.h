@@ -9,6 +9,8 @@
  * - Vec2 
  * - Vec3
  * 
+ * There are also some aliases like position, point,
+ * etc. already defined in the format <name><dimensions><data type>
  */
 
 #pragma once
@@ -168,5 +170,37 @@ namespace math
 		}
 	};
 
+/*****************************************************/
+//				Aliases
+/*****************************************************/
+
+	using Vec2I = Vec2<int>;
+	using Vec2F = Vec2<float>;
+	using Vec2D = Vec2<double>;
+
+	using Point2I = Vec2<int>;
+	using Point2F = Vec2<float>;
+	using Point2D = Vec2<double>;
+
+	using Pos2I = Vec2<int>;
+	using Pos2F = Vec2<float>;
+	using Pos2D = Vec2<double>;
+
+
+	using Vec3I = Vec3<int>;
+	using Vec3F = Vec3<float>;
+	using Vec3D = Vec3<double>;
+
+	using Point3I = Vec3<int>;
+	using Point3F = Vec3<float>;
+	using Point3D = Vec3<double>;
+
+	using Pos3I = Vec3<int>;
+	using Pos3F = Vec3<float>;
+	using Pos3D = Vec3<double>;
+
+/*****************************************************/
+//				Functions
+/*****************************************************/
 }
 }
