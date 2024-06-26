@@ -1,13 +1,14 @@
 /*
  * Some useful math structures and operations.
+ * Structures include a variety of methods, like 
+ * calculating average, dot product, magnitude, 
+ * and most of arithmetic operations 
+ * (excluding those which make no sense)
  *
  * Templated structures:
  * - Vec2 
  * - Vec3
- * - Vec4
  * 
- * Anything with "ut_" prefix is only for internal 
- * use by other structures and functions.
  */
 
 #pragma once
@@ -95,6 +96,74 @@ namespace math
 		friend std::ostream& operator<<(std::ostream& os, const Vec2<T>& v)
 		{
 			os << v.x << ", " << v.y;
+			return os;
+		}
+	};
+
+	template<class T>
+	struct Vec3
+	{
+		T x, y, z;
+
+	public:
+		Vec3() = default;
+		Vec3(T v) : x(x), y(x), z(x) {}
+		Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
+		Vec3(const Vec3<T>& src) : x(src.x), y(src.y), z(src.z) {}
+
+		T Sum() const { return x + y + z; }
+		T Mul() const { return x * y * z; }
+		T Avg() const { return (x + y + z) / 3; }
+
+		T Min() const { return std::min({ x,y,z }); }
+		T Max() const { return std::max({ x,y,z }); }
+		double MagSq() const { return x * x + y * y + z * z; }
+		double Mag() const { return std::sqrt(MagSq()); }
+
+		double Dot(const Vec3& v) { return x * v.x + y * v.y + z * v.z; }
+
+		void Zero() { x = y = z = 0; }
+
+		Vec3<double> Normalize() const { double mag = Mag(); return (mag == 0) ? Vec3<double>(x, y, z) : *this / mag; }
+
+		std::string ToStr() const { return std::format("{}, {}, {}", x, y, z); }
+
+	public:
+		template<class NT>
+		operator Vec3<NT>() const { return Vec3<NT>{(NT)x, (NT)y}; }
+
+		Vec3& operator+=(T v) { x += v; y += v; z += v; return *this; }
+		Vec3& operator-=(T v) { x -= v; y -= v; z -= v; return *this; }
+		Vec3& operator*=(T v) { x *= v; y *= v; z += v; return *this; }
+		Vec3& operator/=(T v) { x /= v; y /= v; z /= v; return *this; }
+
+		Vec3& operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; return *this; }
+		Vec3& operator-=(const Vec3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
+		Vec3& operator*=(const Vec3& v) { x *= v.x; y *= v.y; z *= v.z; return *this; }
+		Vec3& operator/=(const Vec3& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
+															  
+		bool operator==(const Vec3& v) { return x == v.x && y == v.y && z == v.z; }
+		bool operator!=(const Vec3& v) { return x != v.x || y != v.y || z != v.z; }
+		bool operator>(const Vec3& v) { return MagSq() > v.MagSq(); }
+		bool operator>=(const Vec3& v) { return MagSq() >= v.MagSq(); }
+		bool operator<(const Vec3& v) { return MagSq() < v.MagSq(); }
+		bool operator<=(const Vec3& v) { return MagSq() <= v.MagSq(); }
+
+		template<class C>
+		friend Vec3<C> operator+(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs); }
+
+		template<class C>
+		friend Vec3<C> operator-(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs); }
+
+		template<class C>
+		friend Vec3<C> operator*(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs); }
+
+		template<class C>
+		friend Vec3<C> operator/(const Vec3<T>& lhs, const C& rhs) { return Vec3<C>(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs); }
+
+		friend std::ostream& operator<<(std::ostream& os, const Vec3<T>& v)
+		{
+			os << v.x << ", " << v.y << ", " << v.z;
 			return os;
 		}
 	};
