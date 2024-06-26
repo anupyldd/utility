@@ -39,8 +39,6 @@ namespace math
 		Vec2(T v) : x(x), y(x) {}
 		Vec2(T x, T y) : x(x), y(y) {}
 		Vec2(const Vec2<T>& src) : x(src.x), y(src.y) {}
-
-		void Zero() { x = y = 0; }
 		
 		T Sum() { return x + y; }
 		T Sub() { return x - y; }
@@ -50,8 +48,13 @@ namespace math
 
 		T Min() { return std::min(x, y); }
 		T Max() { return std::max(x, y); }
-		float LenSq() { return x * x + y * y; }
-		float Len() { return std::sqrt(LenSq()); }
+		double LenSq() { return x * x + y * y; }
+		double Len() { return std::sqrt(LenSq()); }
+
+		void Zero() { x = y = 0; }
+		
+		Vec2<double> Normalize() { double len = Len(); return (len == 0) ? Vec2<double>(x, y) : *this / len; }
+		//void NormalizeInplace() { double len = Len(); if(len != 0) *this /= len; }
 
 		std::string ToStr() { return std::format("{}, {}", x, y); }
 
@@ -68,6 +71,18 @@ namespace math
 		Vec2& operator-=(const Vec2& v) { x -= v.x; y -= v.y; return *this; }
 		Vec2& operator*=(const Vec2& v) { x *= v.x; y *= v.y; return *this; }
 		Vec2& operator/=(const Vec2& v) { x /= v.x; y /= v.y; return *this; }
+
+		template<class C>
+		friend Vec2<C> operator+(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x + rhs, lhs.y + rhs); }
+		
+		template<class C>
+		friend Vec2<C> operator-(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x - rhs, lhs.y - rhs); }
+		
+		template<class C>
+		friend Vec2<C> operator*(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x * rhs, lhs.y * rhs); }
+
+		template<class C>
+		friend Vec2<C> operator/(const Vec2<T>& lhs, const C& rhs) { return Vec2<C>(lhs.x / rhs, lhs.y / rhs); }
 
 		friend std::ostream& operator<<(std::ostream& os, const Vec2<T>& v)
 		{
