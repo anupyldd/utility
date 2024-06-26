@@ -48,7 +48,7 @@ namespace math
 	template<class T> struct Vec3;
 	template<class T> struct Vec4;
 
-	template<class T> struct Line2;
+	template<class T> struct Segment2;
 
 // Functions ----------------------------------------
 
@@ -59,6 +59,7 @@ namespace math
 
 // Aliases -------------------------------------------
 
+	// vec 2d
 	using Vec2I = Vec2<int>;
 	using Vec2F = Vec2<float>;
 	using Vec2D = Vec2<double>;
@@ -71,7 +72,7 @@ namespace math
 	using Pos2F = Vec2<float>;
 	using Pos2D = Vec2<double>;
 
-
+	// vec 3d
 	using Vec3I = Vec3<int>;
 	using Vec3F = Vec3<float>;
 	using Vec3D = Vec3<double>;
@@ -84,7 +85,7 @@ namespace math
 	using Pos3F = Vec3<float>;
 	using Pos3D = Vec3<double>;
 
-
+	// vec 4d
 	using Vec4I = Vec4<int>;
 	using Vec4F = Vec4<float>;
 	using Vec4D = Vec4<double>;
@@ -97,12 +98,21 @@ namespace math
 	using Pos4F = Vec4<float>;
 	using Pos4D = Vec4<double>;
 
-
+	// color
 	using Color3B = Vec3<uint8_t>;
 	using Color3F = Vec3<float>;
 
 	using Color4B = Vec4<uint8_t>;
 	using Color4F = Vec4<float>;
+
+	// line 2d
+	using Line2I = Segment2<int>;
+	using Line2F = Segment2<float>;
+	using Line2D = Segment2<double>;
+
+	using Edge2I = Segment2<int>;
+	using Edge2F = Segment2<float>;
+	using Edge2D = Segment2<double>;
 }
 }
 
@@ -325,17 +335,41 @@ namespace math
 // -----------------------------------------------------
 
 	template<class T>
-	struct Line2
+	struct Segment2
 	{
 		Vec2<T> a, b;
 
 	public:
-		Line2() = default;
-		Line2(const Vec2<T>& a, const Vec2<T>& b) : a(a), b(b) {}
-		Line2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by)) {}
-		Line2(const Line2& src) : a(src.a), b(src.b) {}
+		Segment2() = default;
+		Segment2(const Vec2<T>& a, const Vec2<T>& b) : a(a), b(b) {}
+		Segment2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by)) {}
+		Segment2(const Segment2& src) : a(src.a), b(src.b) {}
 
-		//double LenSq() const {return }
+		double Len() const { return Distance(a, b); }
+		//double LenSq() const { return DistanceSq(a, b); }
+
+	public:
+		template<class NT>
+		operator Segment2<NT>() const { return Segment2<NT>{(Vec2<NT>)a, (Vec2<NT>)b}; }
+
+		Segment2& operator+=(T v) { a += v; b += v; return *this; }
+		Segment2& operator-=(T v) { a -= v; b -= v; return *this; }
+		Segment2& operator*=(T v) { a *= v; b *= v; return* this; }
+		Segment2& operator/=(T v) { a /= v; b /= v; return *this; }
+
+		Segment2& operator+=(const Segment2& s) { a += s.a; b += s.b; return *this; }
+		Segment2& operator-=(const Segment2& s) { a -= s.a; b -= s.b; return *this; }
+		Segment2& operator*=(const Segment2& s) { a *= s.a; b *= s.b; return *this; }
+		Segment2& operator/=(const Segment2& s) { a /= s.a; b /= s.b; return *this; }
+
+		bool operator==(const Segment2& s) { return a == s.a && b == s.b; }
+		bool operator!=(const Segment2& s) { return a != s.a || b != s.b; }
+
+		friend std::ostream& operator<<(std::ostream& os, const Segment2<T>& s)
+		{
+			os << "(" << s.a.x << ", " << s.a.y << ")" << " (" << s.b.x << ", " << s.b.y << ")";
+			return os;
+		}
 	};
 
 // Functions ----------------------------------------------
