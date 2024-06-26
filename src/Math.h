@@ -55,7 +55,54 @@ namespace math
 	template<class T> T Sqr(T a);
 
 	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
-	template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p)	// between point p and line going through l1 and l2
+	//template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p);	// between point p and line going through l1 and l2
+
+// Aliases -------------------------------------------
+
+	using Vec2I = Vec2<int>;
+	using Vec2F = Vec2<float>;
+	using Vec2D = Vec2<double>;
+
+	using Point2I = Vec2<int>;
+	using Point2F = Vec2<float>;
+	using Point2D = Vec2<double>;
+
+	using Pos2I = Vec2<int>;
+	using Pos2F = Vec2<float>;
+	using Pos2D = Vec2<double>;
+
+
+	using Vec3I = Vec3<int>;
+	using Vec3F = Vec3<float>;
+	using Vec3D = Vec3<double>;
+
+	using Point3I = Vec3<int>;
+	using Point3F = Vec3<float>;
+	using Point3D = Vec3<double>;
+
+	using Pos3I = Vec3<int>;
+	using Pos3F = Vec3<float>;
+	using Pos3D = Vec3<double>;
+
+
+	using Vec4I = Vec4<int>;
+	using Vec4F = Vec4<float>;
+	using Vec4D = Vec4<double>;
+
+	using Point4I = Vec4<int>;
+	using Point4F = Vec4<float>;
+	using Point4D = Vec4<double>;
+
+	using Pos4I = Vec4<int>;
+	using Pos4F = Vec4<float>;
+	using Pos4D = Vec4<double>;
+
+
+	using Color3B = Vec3<uint8_t>;
+	using Color3F = Vec3<float>;
+
+	using Color4B = Vec4<uint8_t>;
+	using Color4F = Vec4<float>;
 }
 }
 
@@ -67,11 +114,7 @@ namespace util
 {
 namespace math
 {
-
-
-/*****************************************************/
-//				Structures
-/*****************************************************/
+// Structures ------------------------------------------
 
 	template<class T>
 	struct Vec2
@@ -279,7 +322,7 @@ namespace math
 		}
 	};
 
-/*****************************************************/
+// -----------------------------------------------------
 
 	template<class T>
 	struct Line2
@@ -289,64 +332,13 @@ namespace math
 	public:
 		Line2() = default;
 		Line2(const Vec2<T>& a, const Vec2<T>& b) : a(a), b(b) {}
-		Line2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by) {}
+		Line2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by)) {}
 		Line2(const Line2& src) : a(src.a), b(src.b) {}
 
-		double LenSq() const {return }
+		//double LenSq() const {return }
 	};
 
-/*****************************************************/
-//				Aliases
-/*****************************************************/
-
-	using Vec2I = Vec2<int>;
-	using Vec2F = Vec2<float>;
-	using Vec2D = Vec2<double>;
-
-	using Point2I = Vec2<int>;
-	using Point2F = Vec2<float>;
-	using Point2D = Vec2<double>;
-
-	using Pos2I = Vec2<int>;
-	using Pos2F = Vec2<float>;
-	using Pos2D = Vec2<double>;
-
-
-	using Vec3I = Vec3<int>;
-	using Vec3F = Vec3<float>;
-	using Vec3D = Vec3<double>;
-
-	using Point3I = Vec3<int>;
-	using Point3F = Vec3<float>;
-	using Point3D = Vec3<double>;
-
-	using Pos3I = Vec3<int>;
-	using Pos3F = Vec3<float>;
-	using Pos3D = Vec3<double>;
-
-
-	using Vec4I = Vec4<int>;
-	using Vec4F = Vec4<float>;
-	using Vec4D = Vec4<double>;
-
-	using Point4I = Vec4<int>;
-	using Point4F = Vec4<float>;
-	using Point4D = Vec4<double>;
-
-	using Pos4I = Vec4<int>;
-	using Pos4F = Vec4<float>;
-	using Pos4D = Vec4<double>;
-
-
-	using Color3B = Vec3<uint8_t>;
-	using Color3F = Vec3<float>;
-
-	using Color4B = Vec4<uint8_t>;
-	using Color4F = Vec4<float>;
-
-/*****************************************************/
-//				Functions
-/*****************************************************/
+// Functions ----------------------------------------------
 	
 	template<class T>
 	T Sqr(T a) { return a * a; }
