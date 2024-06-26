@@ -6,10 +6,9 @@
  * (excluding those which make no sense)
  *
  * Templated structures:
- * - Vec2 
- * - Vec3
- * 
- * There are also some aliases like position, point, color,
+ * - 2D, 3D, 4D vectors
+ *
+ * There are some aliases like position, point, color,
  * etc. already defined in the format <name><dimensions><data type>
  */
 
@@ -24,26 +23,118 @@
 #include <string>
 #include <format>
 #include <numbers>
+#include <initializer_list>
+#include <numeric>
+
+/*****************************************************/
+// List of available structures and functions 
+/*****************************************************/
 
 namespace util
 {
 namespace math
 {
-/*****************************************************/
-//				Constants
-/*****************************************************/
+// Constants ----------------------------------------
 
 	constexpr double PI = 3.1415926535897932;
-	constexpr double PI2 = PI * 2;
+	constexpr double PI2 = PI * 2;	// PI * 2
 
-	constexpr double PI_2 = PI / 2;
-	constexpr double PI_3 = PI / 3;
-	constexpr double PI_4 = PI / 4;
-	constexpr double PI_6 = PI / 6;
+	constexpr double PI_2 = PI / 2; // PI / 2
+	constexpr double PI_3 = PI / 3; // PI / 3
+	constexpr double PI_4 = PI / 4; // PI / 4
+	constexpr double PI_6 = PI / 6; // PI / 6
+
+// Structures ---------------------------------------
+
+	template<class T> struct Vec2;
+	template<class T> struct Vec3;
+	template<class T> struct Vec4;
+
+	template<class T> struct Segment2;
+
+// Functions ----------------------------------------
+
+// square
+	template<class T> T Sqr(T a);
+
+// average
+	template<class T> double Avg(T a, T b);
+	template<class T> double Avg(T a, T b, T c);
+	template<class T> double Avg(std::initializer_list<T> ls);
+	template<class T> double Avg(const Vec2<T>& v1, const Vec2<T>& v2);
+
+// distance
+	template<class T> double Distance(const Vec2<T>& p1, const Vec2<T>& p2); // between two points p1 and p1
+	//template<class T> double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p);	// between point p and line going through l1 and l2
+
+// Aliases -------------------------------------------
+
+	// vec 2d
+	using Vec2I = Vec2<int>;
+	using Vec2F = Vec2<float>;
+	using Vec2D = Vec2<double>;
+
+	using Point2I = Vec2<int>;
+	using Point2F = Vec2<float>;
+	using Point2D = Vec2<double>;
+
+	using Pos2I = Vec2<int>;
+	using Pos2F = Vec2<float>;
+	using Pos2D = Vec2<double>;
+
+	// vec 3d
+	using Vec3I = Vec3<int>;
+	using Vec3F = Vec3<float>;
+	using Vec3D = Vec3<double>;
+
+	using Point3I = Vec3<int>;
+	using Point3F = Vec3<float>;
+	using Point3D = Vec3<double>;
+
+	using Pos3I = Vec3<int>;
+	using Pos3F = Vec3<float>;
+	using Pos3D = Vec3<double>;
+
+	// vec 4d
+	using Vec4I = Vec4<int>;
+	using Vec4F = Vec4<float>;
+	using Vec4D = Vec4<double>;
+
+	using Point4I = Vec4<int>;
+	using Point4F = Vec4<float>;
+	using Point4D = Vec4<double>;
+
+	using Pos4I = Vec4<int>;
+	using Pos4F = Vec4<float>;
+	using Pos4D = Vec4<double>;
+
+	// color
+	using Color3B = Vec3<uint8_t>;
+	using Color3F = Vec3<float>;
+
+	using Color4B = Vec4<uint8_t>;
+	using Color4F = Vec4<float>;
+
+	// line 2d
+	using Line2I = Segment2<int>;
+	using Line2F = Segment2<float>;
+	using Line2D = Segment2<double>;
+
+	using Edge2I = Segment2<int>;
+	using Edge2F = Segment2<float>;
+	using Edge2D = Segment2<double>;
+}
+}
 
 /*****************************************************/
-//				Structures
+// Implementation 
 /*****************************************************/
+
+namespace util
+{
+namespace math
+{
+// Structures ------------------------------------------
 
 	template<class T>
 	struct Vec2
@@ -251,57 +342,80 @@ namespace math
 		}
 	};
 
-/*****************************************************/
-//				Aliases
-/*****************************************************/
+// -----------------------------------------------------
 
-	using Vec2I = Vec2<int>;
-	using Vec2F = Vec2<float>;
-	using Vec2D = Vec2<double>;
+	template<class T>
+	struct Segment2
+	{
+		Vec2<T> a, b;
 
-	using Point2I = Vec2<int>;
-	using Point2F = Vec2<float>;
-	using Point2D = Vec2<double>;
+	public:
+		Segment2() = default;
+		Segment2(const Vec2<T>& a, const Vec2<T>& b) : a(a), b(b) {}
+		Segment2(T ax, T ay, T bx, T by) : a(Vec2<T>(ax, ay)), b(Vec2<T>(bx, by)) {}
+		Segment2(const Segment2& src) : a(src.a), b(src.b) {}
 
-	using Pos2I = Vec2<int>;
-	using Pos2F = Vec2<float>;
-	using Pos2D = Vec2<double>;
+		double Len() const { return Distance(a, b); }
+		//double LenSq() const { return DistanceSq(a, b); }
 
+	public:
+		template<class NT>
+		operator Segment2<NT>() const { return Segment2<NT>{(Vec2<NT>)a, (Vec2<NT>)b}; }
 
-	using Vec3I = Vec3<int>;
-	using Vec3F = Vec3<float>;
-	using Vec3D = Vec3<double>;
+		Segment2& operator+=(T v) { a += v; b += v; return *this; }
+		Segment2& operator-=(T v) { a -= v; b -= v; return *this; }
+		Segment2& operator*=(T v) { a *= v; b *= v; return* this; }
+		Segment2& operator/=(T v) { a /= v; b /= v; return *this; }
 
-	using Point3I = Vec3<int>;
-	using Point3F = Vec3<float>;
-	using Point3D = Vec3<double>;
+		Segment2& operator+=(const Segment2& s) { a += s.a; b += s.b; return *this; }
+		Segment2& operator-=(const Segment2& s) { a -= s.a; b -= s.b; return *this; }
+		Segment2& operator*=(const Segment2& s) { a *= s.a; b *= s.b; return *this; }
+		Segment2& operator/=(const Segment2& s) { a /= s.a; b /= s.b; return *this; }
 
-	using Pos3I = Vec3<int>;
-	using Pos3F = Vec3<float>;
-	using Pos3D = Vec3<double>;
+		bool operator==(const Segment2& s) { return a == s.a && b == s.b; }
+		bool operator!=(const Segment2& s) { return a != s.a || b != s.b; }
 
+		friend std::ostream& operator<<(std::ostream& os, const Segment2<T>& s)
+		{
+			os << "(" << s.a.x << ", " << s.a.y << ")" << " (" << s.b.x << ", " << s.b.y << ")";
+			return os;
+		}
+	};
 
-	using Vec4I = Vec4<int>;
-	using Vec4F = Vec4<float>;
-	using Vec4D = Vec4<double>;
+// Functions ----------------------------------------------
 
-	using Point4I = Vec4<int>;
-	using Point4F = Vec4<float>;
-	using Point4D = Vec4<double>;
+// square
+	template<class T>
+	T Sqr(T a) { return a * a; }
 
-	using Pos4I = Vec4<int>;
-	using Pos4F = Vec4<float>;
-	using Pos4D = Vec4<double>;
+// average
+	template<class T>
+	double Avg(T a, T b) { return (a + b) / 2; }
 
+	template<class T>
+	double Avg(T a, T b, T c) { return (a + b + c) / 3; }
 
-	using Color3B = Vec3<uint8_t>;
-	using Color3F = Vec3<float>;
+	template<class T>
+	double Avg(std::initializer_list<T> ls) { return (std::accumulate(ls.begin(), ls.end(), 0)) / ls.size(); }
 
-	using Color4B = Vec4<uint8_t>;
-	using Color4F = Vec4<float>;
+	template<class T>
+	double Avg(const Vec2<T>& v1, const Vec2<T>& v2) { return (v1 + v2) * 0.5; }
 
-/*****************************************************/
-//				Functions
-/*****************************************************/
+// distance
+	template<class T>
+	double Distance(const Vec2<T>& p1, const Vec2<T>& p2)	
+	{
+		return std::sqrt(Sqr(p2.x - p1.x) + Sqr(p2.y - p1.y));
+	}
+	/*
+	template<class T>
+	double Distance(const Vec2<T>& l1, const Vec2<T>& l2, const Vec2<T>& p)	// between point p and line going through l1 and l2
+	{
+		
+		//const T a = std::abs((l2.y - l1.y) * p.x - (l2.x - l1.x) * p.y + l2.x + l1.y - l2.y + l1.x);
+		//const T b = std::sqrt(Sqr(l2.y - l1.y) + Sqr(l2.x - l1.x));
+		//return a / b;
+	}*/
+	
 }
 }
