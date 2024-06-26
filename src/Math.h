@@ -1,13 +1,14 @@
 /*
  * Some useful math structures and operations.
+ * Structures include a variety of methods, like 
+ * calculating average, dot product, magnitude, 
+ * and most of arithmetic operations 
+ * (excluding those which make no sense)
  *
  * Templated structures:
  * - Vec2 
  * - Vec3
- * - Vec4
  * 
- * Anything with "ut_" prefix is only for internal 
- * use by other structures and functions.
  */
 
 #pragma once
