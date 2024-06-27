@@ -8,4 +8,4 @@ Currently implemented:<br />
 	- templated linked list (access, search, insertion)<br />
 	- custom assertions and exceptions<br />
 	- timer (different duration formats, intermediate steps, output formatting)<br />
-	- math (templated vectors, calculation of magnitude, dot product, arithmetic operations, etc.)
+	
